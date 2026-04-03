@@ -161,7 +161,7 @@ export default function NewEntryPage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-lg border border-input bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow"
-                  placeholder="e.g. MIT PhD Application, Google SWE Interview"
+                  placeholder={category === "academic" ? "e.g. Harvard PhD Application, NSF Fellowship, Honor Society" : "e.g. Google SWE Interview, Marketing Manager at Acme"}
                 />
               </div>
               <div className="space-y-1.5">
