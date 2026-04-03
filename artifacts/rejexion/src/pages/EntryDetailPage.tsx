@@ -42,7 +42,7 @@ export default function EntryDetailPage() {
     setNoteError("");
 
     createGrowthNote.mutate(
-      { params: { entryId: id }, data: { content: growthNoteText } },
+      { entryId: id, data: { content: growthNoteText } },
       {
         onSuccess: () => {
           setGrowthNoteText("");
