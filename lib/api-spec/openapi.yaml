@@ -3,13 +3,25 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: RejeXion API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: entries
+    description: Rejection entry operations
+  - name: growth-notes
+    description: Growth note operations
+  - name: points
+    description: Points operations
+  - name: prompts
+    description: Prompt template operations
+  - name: profile
+    description: User profile operations
 paths:
   /healthz:
     get:
@@ -24,6 +36,437 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/forgot-password:
+    post:
+      operationId: forgotPassword
+      tags: [auth]
+      summary: Request password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordBody"
+      responses:
+        "200":
+          description: Reset email sent if account exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/reset-password:
+    post:
+      operationId: resetPassword
+      tags: [auth]
+      summary: Reset password with token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordBody"
+      responses:
+        "200":
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /profile:
+    get:
+      operationId: getProfile
+      tags: [profile]
+      summary: Get user profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteAccount
+      tags: [profile]
+      summary: Delete account
+      responses:
+        "204":
+          description: Account deleted
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /prompts:
+    get:
+      operationId: getPrompts
+      tags: [prompts]
+      summary: Get prompt templates by category
+      parameters:
+        - name: category
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [academic, career]
+      responses:
+        "200":
+          description: List of prompts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PromptTemplate"
+
+  /entries:
+    get:
+      operationId: listEntries
+      tags: [entries]
+      summary: List user entries
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [academic, career, all]
+      responses:
+        "200":
+          description: List of entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Entry"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createEntry
+      tags: [entries]
+      summary: Create a new rejection entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEntryBody"
+      responses:
+        "201":
+          description: Entry created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Entry"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /entries/{id}:
+    get:
+      operationId: getEntry
+      tags: [entries]
+      summary: Get a specific entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Entry details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntryDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteEntry
+      tags: [entries]
+      summary: Delete an entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Entry deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /entries/{id}/export:
+    get:
+      operationId: exportEntry
+      tags: [entries]
+      summary: Export entry as plain text
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Plain text export
+          content:
+            text/plain:
+              schema:
+                type: string
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /entries/{entryId}/growth-notes:
+    get:
+      operationId: listGrowthNotes
+      tags: [growth-notes]
+      summary: List growth notes for an entry
+      parameters:
+        - name: entryId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of growth notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GrowthNote"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createGrowthNote
+      tags: [growth-notes]
+      summary: Add a growth note to an entry
+      parameters:
+        - name: entryId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGrowthNoteBody"
+      responses:
+        "201":
+          description: Growth note created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GrowthNote"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /points:
+    get:
+      operationId: getPoints
+      tags: [points]
+      summary: Get user points summary
+      responses:
+        "200":
+          description: Points summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PointsSummary"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /stats:
+    get:
+      operationId: getStats
+      tags: [entries]
+      summary: Get user entry statistics
+      responses:
+        "200":
+          description: Statistics summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsSummary"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +477,326 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    RegisterBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        name:
+          type: string
+      required:
+        - email
+        - password
+        - name
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    ForgotPasswordBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+        - email
+
+    ResetPasswordBody:
+      type: object
+      properties:
+        token:
+          type: string
+        password:
+          type: string
+          minLength: 8
+      required:
+        - token
+        - password
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - name
+        - createdAt
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - user
+
+    Profile:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        totalPoints:
+          type: integer
+        entryCount:
+          type: integer
+        growthNoteCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - name
+        - totalPoints
+        - entryCount
+        - growthNoteCount
+        - createdAt
+
+    PromptTemplate:
+      type: object
+      properties:
+        id:
+          type: string
+        category:
+          type: string
+          enum: [academic, career]
+        promptText:
+          type: string
+        orderIndex:
+          type: integer
+      required:
+        - id
+        - category
+        - promptText
+        - orderIndex
+
+    CreateEntryBody:
+      type: object
+      properties:
+        category:
+          type: string
+          enum: [academic, career]
+        title:
+          type: string
+        rejectionDate:
+          type: string
+          format: date
+        description:
+          type: string
+        responses:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntryResponseInput"
+      required:
+        - category
+        - title
+        - rejectionDate
+        - description
+        - responses
+
+    EntryResponseInput:
+      type: object
+      properties:
+        promptId:
+          type: string
+        responseText:
+          type: string
+      required:
+        - promptId
+        - responseText
+
+    Entry:
+      type: object
+      properties:
+        id:
+          type: string
+        category:
+          type: string
+          enum: [academic, career]
+        title:
+          type: string
+        rejectionDate:
+          type: string
+          format: date
+        description:
+          type: string
+        growthNoteCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - category
+        - title
+        - rejectionDate
+        - description
+        - growthNoteCount
+        - createdAt
+
+    EntryResponseItem:
+      type: object
+      properties:
+        id:
+          type: string
+        promptId:
+          type: string
+        promptText:
+          type: string
+        responseText:
+          type: string
+      required:
+        - id
+        - promptId
+        - promptText
+        - responseText
+
+    EntryDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        category:
+          type: string
+          enum: [academic, career]
+        title:
+          type: string
+        rejectionDate:
+          type: string
+          format: date
+        description:
+          type: string
+        responses:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntryResponseItem"
+        growthNotes:
+          type: array
+          items:
+            $ref: "#/components/schemas/GrowthNote"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - category
+        - title
+        - rejectionDate
+        - description
+        - responses
+        - growthNotes
+        - createdAt
+
+    GrowthNote:
+      type: object
+      properties:
+        id:
+          type: string
+        entryId:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - entryId
+        - content
+        - createdAt
+
+    CreateGrowthNoteBody:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+        - content
+
+    PointsSummary:
+      type: object
+      properties:
+        totalPoints:
+          type: integer
+        entryPoints:
+          type: integer
+        growthNotePoints:
+          type: integer
+        entryCount:
+          type: integer
+        growthNoteCount:
+          type: integer
+      required:
+        - totalPoints
+        - entryPoints
+        - growthNotePoints
+        - entryCount
+        - growthNoteCount
+
+    StatsSummary:
+      type: object
+      properties:
+        totalEntries:
+          type: integer
+        academicEntries:
+          type: integer
+        careerEntries:
+          type: integer
+        totalGrowthNotes:
+          type: integer
+        totalPoints:
+          type: integer
+        recentEntries:
+          type: array
+          items:
+            $ref: "#/components/schemas/Entry"
+      required:
+        - totalEntries
+        - academicEntries
+        - careerEntries
+        - totalGrowthNotes
+        - totalPoints
+        - recentEntries

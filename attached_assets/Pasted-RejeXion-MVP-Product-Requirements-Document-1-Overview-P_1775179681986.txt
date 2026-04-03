@@ -1,0 +1,302 @@
+RejeXion — MVP Product Requirements Document
+1. Overview
+Project Summary
+RejeXion is a mobile-responsive web app that enables students and early-career professionals to privately reflect on academic and career rejection.
+The MVP focuses on:
+Logging a rejection event
+Completing a structured reflection
+Revisiting entries
+Adding growth notes over time
+
+Purpose of This Document
+This PRD defines a clear, buildable MVP for implementation. It is designed to:
+Remove ambiguity
+Align product, design, and engineering
+Prevent scope creep
+
+2. Product Definition
+What This Product Is
+A private, structured reflection tool for academic and career rejection.
+What This Product Is NOT
+Not therapy or mental health treatment
+Not a social or community platform
+Not a general journaling app
+
+Product Promise
+Helps users reflect and recognize growth over time through structured, private entries.
+
+3. Product Goals
+Primary Goal
+Enable meaningful private reflection after rejection and support revisiting that reflection later.
+Secondary Goals
+Reinforce trust through private-by-default design
+Enable low-friction entry creation
+Provide clear revisit pathways through timeline and growth notes
+
+4. MVP Success Metrics (8–12 weeks)
+First-entry activation rate ≥ 50%
+Revisit rate (30 days) ≥ 30%
+Growth note adoption ≥ 15%
+Reflection helpfulness ≥ 65%
+Privacy understanding ≥ 85%
+
+5. Non-Goals
+No therapy, diagnosis, or crisis features
+No social or community features
+No AI-generated prompts or summaries
+No multimedia uploads
+No notifications or reminders
+No editing entries in V1
+
+6. Scope
+In Scope
+Account creation (email + password)
+Login/logout
+Password reset
+Private rejection entry creation
+Categories: academic and career
+Category-based prompts
+Entry detail view
+Timeline view
+Filtering by category
+Growth notes
+Lightweight points system
+Profile management
+Account deletion
+Entry deletion
+Single-entry export (plain text)
+Mobile-responsive UI
+Privacy-safe analytics
+
+Out of Scope
+Streaks
+Community features
+Draft autosave
+Editing entries
+AI features
+Notifications
+
+7. Target Users
+Primary
+Students and early-career professionals experiencing academic or career rejection.
+User Needs
+Privacy and trust
+Fast reflection process
+Relevant guidance
+Ability to revisit entries safely
+
+8. Product Principles
+Trust First → Privacy over features
+Narrow Focus → One core job: rejection reflection
+Supportive Tone → Calm, non-clinical language
+Reflection Over Gamification
+
+9. Content & Tone
+Tone Requirements
+Clear
+Calm
+Supportive
+Non-judgmental
+Avoid
+Therapy or diagnostic language
+Forced positivity
+Guilt or pressure-based messaging
+
+10. Functional Requirements
+Authentication
+Email/password signup with validation
+Login/logout
+Password reset with secure tokens
+Users can only access their own data
+
+Entries
+Required fields:
+Category (academic or career)
+Title
+Rejection date
+Short description
+Four prompt responses
+Entries are immutable after saving.
+
+Prompts
+Stored as configurable templates (not hardcoded)
+Category-based prompt sets
+
+Growth Notes
+Text only
+Timestamped
+Multiple per entry allowed
+
+Timeline
+Sorted by rejection date (descending)
+Filter options: All, Academic, Career
+
+Export
+Single-entry export only
+Plain text format
+No internal metadata included
+
+11. Points System
+Purpose
+The points system reinforces reflection behavior without introducing pressure or gamification.
+
+Rules
++5 points for each completed entry
++2 points for each growth note
+
+Rationale
+Entry creation requires higher effort → higher reward
+Growth notes encourage return usage
+Simple ratio (5:2) keeps system intuitive and low-pressure
+
+Validation
+Monitor growth note adoption and repeat usage
+Adjust in future versions if needed
+
+Constraint
+Points must remain visually secondary to reflection content.
+
+12. Data Model
+Entities:
+User
+Entry
+PromptTemplate
+EntryResponse
+GrowthNote
+PointsEvent
+AnalyticsEvent
+The system must support prompt updates without requiring schema changes.
+
+13. Analytics (Privacy-Safe)
+Core Principle
+Analytics must be metadata-only.
+
+Excluded from Analytics
+Entry text
+Prompt responses
+Growth notes
+Descriptions
+
+Included in Analytics
+event_name
+hashed_user_id
+entry_id (UUID)
+category
+timestamp
+action type
+session_id
+device type
+
+PII Protection Rules
+User IDs must be hashed
+No raw emails tracked
+No free-text fields allowed
+Events must follow strict schema validation
+Only allow predefined event types
+
+Events
+sign_up_completed
+login_completed
+entry_started
+entry_saved
+entry_deleted
+growth_note_added
+export_initiated
+account_deleted
+
+14. Non-Functional Requirements
+Security
+Password hashing (industry standard)
+HTTPS required
+Auth required for all private data
+Prevent cross-user access
+
+Performance
+Load under 3 seconds on mobile
+Support at least 200 entries per user
+
+Accessibility
+Keyboard navigation
+Visible focus states
+Clear labels and validation
+
+Reliability
+Prevent duplicate submissions
+Clear success and error messages
+Safe session expiration handling
+
+15. User Flows
+First Entry
+Signup → Add Entry → Complete prompts → Save → Timeline update
+
+Revisit Flow
+Login → Timeline → Open entry → Add growth note → Save
+
+Export Flow
+Open entry → Export → Generate plain text
+
+16. Cross-Team Responsibilities
+Product
+Scope
+Prompts
+Tone
+Points logic
+Engineering
+Auth
+Database
+Security
+Export
+Analytics
+Event schema
+Privacy enforcement
+QA
+Acceptance testing
+Edge cases
+Security validation
+
+17. Risks & Mitigation
+Low repeat usage → Emphasize growth notes
+Privacy concerns → Clear privacy messaging
+Points trivialization → Keep visually minimal
+Export risk → Limit to single-entry text
+Prompt quality → Keep categories narrow
+
+18. Release Criteria
+MVP is ready when:
+Auth and security validated
+Users can create, view, filter, export, and delete entries
+Growth notes function correctly
+Points system works consistently
+Analytics exclude all text content
+Mobile responsiveness validated
+All critical user flows pass testing
+
+19. Implementation Notes (Replit)
+Frontend
+Entry forms
+Timeline view
+Entry detail view
+
+Backend
+Endpoints:
+/auth
+/entries
+/growth-notes
+/points
+/analytics
+
+Database
+Relational (PostgreSQL recommended)
+
+Critical Constraints
+No text in analytics
+All data user-scoped
+Entries immutable after save
+
+20. Summary
+RejeXion MVP is:
+Privacy-first
+Focused on a single core use case
+Behaviorally grounded
+Ready for implementation
+

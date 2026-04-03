@@ -1,0 +1,9 @@
+import { pgTable, text, uuid, timestamp, jsonb } from "drizzle-orm/pg-core";
+
+export const sessionsTable = pgTable("sessions", {
+  sid: text("sid").primaryKey(),
+  sess: jsonb("sess").notNull(),
+  expire: timestamp("expire", { withTimezone: true }).notNull(),
+});
+
+export type Session = typeof sessionsTable.$inferSelect;
