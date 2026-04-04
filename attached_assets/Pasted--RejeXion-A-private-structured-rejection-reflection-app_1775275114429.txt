@@ -1,0 +1,74 @@
+# RejeXion
+
+A private, structured rejection reflection app for students and early-career professionals.
+
+## Overview
+
+RejeXion is designed for students and early-career professionals navigating academic and career rejection. Many people experience rejection in deeply personal areas of life, yet most existing tools are either too generic, too public, or not built for meaningful reflection.
+
+RejeXion addresses this gap by providing a calm, private, and structured space to document rejection experiences, reflect through guided prompts, and revisit growth over time.
+
+The app is intentionally designed to support personal reflection rather than social sharing. It focuses on privacy, emotional clarity, and growth by helping users process setbacks in a way that feels organized, personal, and constructive.
+
+## Features
+
+- **Private rejection log** — record what happened, when it happened, and how you felt
+- **Guided prompts** — complete 4 structured reflection questions based on category
+- **Growth notes** — return to any entry and add timestamped notes as your perspective changes
+- **Points system** — earn points for reflective actions such as creating entries and adding growth notes
+- **Export** — download any entry as a plain text file
+- **Private by design** — no social features, no AI-generated reflection, and no public profiles
+
+## Current MVP Scope
+
+The current MVP focuses on two types of rejection:
+
+- Academic rejection
+- Career rejection
+
+Core scope includes:
+
+- Private user authentication using session-based login
+- Rejection entry creation
+- Four guided reflection prompts per category
+- Timestamped growth notes
+- A basic points system
+- Plain text export for individual entries
+- A fully private experience with no social sharing or AI-generated responses
+
+This focused scope keeps the first version of the product specific, manageable, and aligned with the core goal of structured private reflection.
+
+## How It Works
+
+1. The user logs in to a private account.
+2. The user creates a new rejection entry by selecting a category: academic or career.
+3. The user adds key details such as the title, date, and short description of what happened.
+4. The app presents four guided reflection prompts based on the selected category.
+5. The completed entry is saved privately to the user’s account.
+6. The user can revisit previous entries and add timestamped growth notes over time.
+7. The app awards points for reflective engagement, including creating entries and adding growth notes.
+8. Any entry can be exported as a plain text file for personal use.
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React, Vite, Tailwind CSS, shadcn/ui |
+| Backend | Express 5, Node.js |
+| Database | PostgreSQL, Drizzle ORM |
+| Authentication | Session-based (`express-session`) |
+| Routing | Wouter |
+| API | OpenAPI specification + generated React Query hooks |
+| Monorepo | pnpm workspaces |
+
+## Project Structure
+
+```text
+/
+├── artifacts/
+│   ├── api-server/        # Express API backend
+│   └── rejexion/          # React + Vite frontend
+├── lib/
+│   ├── api-client-react/  # Generated React Query hooks
+│   ├── api-spec/          # OpenAPI specification
+│   └── db/                # Drizzle ORM schema + migrations
