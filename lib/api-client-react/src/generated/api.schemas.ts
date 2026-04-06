@@ -75,6 +75,12 @@ export interface PromptTemplate {
   orderIndex: number;
 }
 
+export interface UpdateEntryBody {
+  title?: string;
+  rejectionDate?: string;
+  description?: string;
+}
+
 export type CreateEntryBodyCategory =
   (typeof CreateEntryBodyCategory)[keyof typeof CreateEntryBodyCategory];
 

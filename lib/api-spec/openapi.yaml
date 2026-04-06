@@ -310,6 +310,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateEntry
+      tags: [entries]
+      summary: Update an entry's basic details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEntryBody"
+      responses:
+        "200":
+          description: Entry updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Entry"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     delete:
       operationId: deleteEntry
       tags: [entries]
@@ -354,6 +395,33 @@ paths:
             text/plain:
               schema:
                 type: string
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /growth-notes/{id}:
+    delete:
+      operationId: deleteGrowthNote
+      tags: [growth-notes]
+      summary: Delete a growth note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Growth note deleted
         "404":
           description: Not found
           content:
@@ -612,6 +680,17 @@ components:
         - category
         - promptText
         - orderIndex
+
+    UpdateEntryBody:
+      type: object
+      properties:
+        title:
+          type: string
+        rejectionDate:
+          type: string
+          format: date
+        description:
+          type: string
 
     CreateEntryBody:
       type: object

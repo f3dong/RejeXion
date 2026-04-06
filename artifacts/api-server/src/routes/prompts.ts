@@ -5,28 +5,32 @@ import { requireAuth } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
-router.get("/prompts", requireAuth, async (req, res): Promise<void> => {
-  const { category } = req.query;
+router.get("/prompts", requireAuth, async (req, res, next): Promise<void> => {
+  try {
+    const { category } = req.query;
 
-  if (!category || (category !== "academic" && category !== "career")) {
-    res.status(400).json({ error: "category must be 'academic' or 'career'" });
-    return;
+    if (!category || (category !== "academic" && category !== "career")) {
+      res.status(400).json({ error: "category must be 'academic' or 'career'" });
+      return;
+    }
+
+    const prompts = await db
+      .select()
+      .from(promptTemplatesTable)
+      .where(eq(promptTemplatesTable.category, category as string))
+      .orderBy(asc(promptTemplatesTable.orderIndex));
+
+    res.json(
+      prompts.map((p) => ({
+        id: p.id,
+        category: p.category,
+        promptText: p.promptText,
+        orderIndex: p.orderIndex,
+      }))
+    );
+  } catch (err) {
+    next(err);
   }
-
-  const prompts = await db
-    .select()
-    .from(promptTemplatesTable)
-    .where(eq(promptTemplatesTable.category, category as string))
-    .orderBy(asc(promptTemplatesTable.orderIndex));
-
-  res.json(
-    prompts.map((p) => ({
-      id: p.id,
-      category: p.category,
-      promptText: p.promptText,
-      orderIndex: p.orderIndex,
-    }))
-  );
 });
 
 export default router;

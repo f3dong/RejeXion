@@ -33,4 +33,5 @@ export * from "./promptTemplateCategory";
 export * from "./registerBody";
 export * from "./resetPasswordBody";
 export * from "./statsSummary";
+export * from "./updateEntryBody";
 export * from "./user";

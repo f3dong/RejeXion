@@ -36,6 +36,7 @@ import type {
   RegisterBody,
   ResetPasswordBody,
   StatsSummary,
+  UpdateEntryBody,
   User,
 } from "./api.schemas";
 
@@ -1124,6 +1125,93 @@ export function useGetEntry<
 }
 
 /**
+ * @summary Update an entry's basic details
+ */
+export const getUpdateEntryUrl = (id: string) => {
+  return `/api/entries/${id}`;
+};
+
+export const updateEntry = async (
+  id: string,
+  updateEntryBody: UpdateEntryBody,
+  options?: RequestInit,
+): Promise<Entry> => {
+  return customFetch<Entry>(getUpdateEntryUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateEntryBody),
+  });
+};
+
+export const getUpdateEntryMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateEntry>>,
+    TError,
+    { id: string; data: BodyType<UpdateEntryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateEntry>>,
+  TError,
+  { id: string; data: BodyType<UpdateEntryBody> },
+  TContext
+> => {
+  const mutationKey = ["updateEntry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateEntry>>,
+    { id: string; data: BodyType<UpdateEntryBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateEntry(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateEntry>>
+>;
+export type UpdateEntryMutationBody = BodyType<UpdateEntryBody>;
+export type UpdateEntryMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update an entry's basic details
+ */
+export const useUpdateEntry = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateEntry>>,
+    TError,
+    { id: string; data: BodyType<UpdateEntryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateEntry>>,
+  TError,
+  { id: string; data: BodyType<UpdateEntryBody> },
+  TContext
+> => {
+  return useMutation(getUpdateEntryMutationOptions(options));
+};
+
+/**
  * @summary Delete an entry
  */
 export const getDeleteEntryUrl = (id: string) => {
@@ -1293,6 +1381,90 @@ export function useExportEntry<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Delete a growth note
+ */
+export const getDeleteGrowthNoteUrl = (id: string) => {
+  return `/api/growth-notes/${id}`;
+};
+
+export const deleteGrowthNote = async (
+  id: string,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteGrowthNoteUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteGrowthNoteMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteGrowthNote>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteGrowthNote>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["deleteGrowthNote"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteGrowthNote>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteGrowthNote(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteGrowthNoteMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteGrowthNote>>
+>;
+
+export type DeleteGrowthNoteMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Delete a growth note
+ */
+export const useDeleteGrowthNote = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteGrowthNote>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteGrowthNote>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  return useMutation(getDeleteGrowthNoteMutationOptions(options));
+};
 
 /**
  * @summary List growth notes for an entry

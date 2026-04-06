@@ -62,7 +62,8 @@ export default function NewEntryPage() {
 
   const handleStep3Next = (e: React.FormEvent) => {
     e.preventDefault();
-    const allAnswered = prompts?.every((p) => responses[p.id]?.trim());
+    if (!prompts || prompts.length === 0) return;
+    const allAnswered = prompts.every((p) => responses[p.id]?.trim());
     if (!allAnswered) {
       setError("Please answer all prompts");
       return;
@@ -253,7 +254,7 @@ export default function NewEntryPage() {
           <div className="space-y-6">
             <div>
               <h1 className="font-serif text-2xl font-light text-foreground">Review your entry</h1>
-              <p className="text-sm text-muted-foreground mt-1">Once saved, entries cannot be edited</p>
+              <p className="text-sm text-muted-foreground mt-1">Once saved, reflection answers cannot be edited</p>
             </div>
             {error && (
               <div className="px-4 py-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">{error}</div>

@@ -180,6 +180,29 @@ export const GetEntryResponse = zod.object({
 });
 
 /**
+ * @summary Update an entry's basic details
+ */
+export const UpdateEntryParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateEntryBody = zod.object({
+  title: zod.string().optional(),
+  rejectionDate: zod.coerce.date().optional(),
+  description: zod.string().optional(),
+});
+
+export const UpdateEntryResponse = zod.object({
+  id: zod.string(),
+  category: zod.enum(["academic", "career"]),
+  title: zod.string(),
+  rejectionDate: zod.coerce.date(),
+  description: zod.string(),
+  growthNoteCount: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
  * @summary Delete an entry
  */
 export const DeleteEntryParams = zod.object({
@@ -190,6 +213,13 @@ export const DeleteEntryParams = zod.object({
  * @summary Export entry as plain text
  */
 export const ExportEntryParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+/**
+ * @summary Delete a growth note
+ */
+export const DeleteGrowthNoteParams = zod.object({
   id: zod.coerce.string(),
 });
 

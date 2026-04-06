@@ -4,7 +4,9 @@ import {
   useGetEntry,
   getGetEntryQueryKey,
   useDeleteEntry,
+  useUpdateEntry,
   useCreateGrowthNote,
+  useDeleteGrowthNote,
   getListEntriesQueryKey,
   getGetStatsQueryKey,
   getGetPointsQueryKey,
@@ -27,11 +29,56 @@ export default function EntryDetailPage() {
   });
 
   const deleteEntry = useDeleteEntry();
+  const updateEntry = useUpdateEntry();
   const createGrowthNote = useCreateGrowthNote();
+  const deleteGrowthNote = useDeleteGrowthNote();
 
   const [growthNoteText, setGrowthNoteText] = useState("");
   const [noteError, setNoteError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editError, setEditError] = useState("");
+
+  const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
+
+  const handleStartEdit = () => {
+    if (!entry) return;
+    setEditTitle(entry.title);
+    setEditDate(entry.rejectionDate);
+    setEditDescription(entry.description ?? "");
+    setEditError("");
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditError("");
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editTitle.trim() || !editDate) {
+      setEditError("Title and date are required");
+      return;
+    }
+    setEditError("");
+    updateEntry.mutate(
+      { id, data: { title: editTitle, rejectionDate: editDate, description: editDescription } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetEntryQueryKey(id) });
+          queryClient.invalidateQueries({ queryKey: getListEntriesQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getGetStatsQueryKey() });
+          setIsEditing(false);
+        },
+        onError: () => setEditError("Failed to save changes. Please try again."),
+      }
+    );
+  };
 
   const handleAddGrowthNote = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +99,24 @@ export default function EntryDetailPage() {
           queryClient.invalidateQueries({ queryKey: getGetProfileQueryKey() });
         },
         onError: () => setNoteError("Failed to save growth note. Please try again."),
+      }
+    );
+  };
+
+  const handleDeleteGrowthNote = (noteId: string) => {
+    setDeletingNoteId(noteId);
+    deleteGrowthNote.mutate(
+      { id: noteId },
+      {
+        onSuccess: () => {
+          setDeletingNoteId(null);
+          queryClient.invalidateQueries({ queryKey: getGetEntryQueryKey(id) });
+          queryClient.invalidateQueries({ queryKey: getListGrowthNotesQueryKey(id) });
+        },
+        onError: () => {
+          setDeletingNoteId(null);
+          setNoteError("Failed to delete growth note. Please try again.");
+        },
       }
     );
   };
@@ -125,6 +190,13 @@ export default function EntryDetailPage() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
+              onClick={handleStartEdit}
+              className="px-3 py-1.5 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+              title="Edit entry details"
+            >
+              Edit
+            </button>
+            <button
               onClick={handleExport}
               className="px-3 py-1.5 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
               title="Export as text"
@@ -191,9 +263,19 @@ export default function EntryDetailPage() {
             <div className="space-y-3">
               {entry.growthNotes.map((note) => (
                 <div key={note.id} className="p-4 rounded-xl border border-border bg-card">
-                  <p className="text-xs text-muted-foreground mb-2">
-                    {format(new Date(note.createdAt), "MMMM d, yyyy")}
-                  </p>
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-xs text-muted-foreground mb-2">
+                      {format(new Date(note.createdAt), "MMMM d, yyyy")}
+                    </p>
+                    <button
+                      onClick={() => handleDeleteGrowthNote(note.id)}
+                      disabled={deletingNoteId === note.id}
+                      className="text-xs text-muted-foreground hover:text-destructive transition-colors shrink-0 disabled:opacity-50"
+                      title="Delete note"
+                    >
+                      {deletingNoteId === note.id ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
                   <p className="text-sm text-foreground leading-relaxed">{note.content}</p>
                 </div>
               ))}
@@ -205,6 +287,65 @@ export default function EntryDetailPage() {
           )}
         </div>
       </div>
+
+      {isEditing && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-xl">
+            <h3 className="font-serif text-xl font-light text-foreground">Edit entry details</h3>
+            {editError && (
+              <div className="px-3 py-2 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">{editError}</div>
+            )}
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-foreground">Title</label>
+                <input
+                  type="text"
+                  required
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-foreground">Rejection date</label>
+                <input
+                  type="date"
+                  required
+                  value={editDate}
+                  onChange={(e) => setEditDate(e.target.value)}
+                  max={format(new Date(), "yyyy-MM-dd")}
+                  className="w-full px-3 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-shadow"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-foreground">Description</label>
+                <textarea
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow resize-none"
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="flex-1 py-2.5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-secondary transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updateEntry.isPending}
+                  className="flex-1 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {updateEntry.isPending ? "Saving..." : "Save changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
