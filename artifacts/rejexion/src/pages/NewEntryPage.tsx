@@ -21,7 +21,7 @@ export default function NewEntryPage() {
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
 
-  const { data: prompts, isLoading: promptsLoading } = useGetPrompts(
+  const { data: prompts, isLoading: promptsLoading, isError: promptsError, refetch: refetchPrompts } = useGetPrompts(
     { category: category! },
     { query: { enabled: !!category } }
   );
@@ -209,6 +209,17 @@ export default function NewEntryPage() {
                 <div className="w-7 h-7 rounded-full border-2 border-primary border-t-transparent animate-spin" />
                 <p className="text-sm text-muted-foreground">Loading reflection prompts…</p>
               </div>
+            ) : promptsError ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <p className="text-sm text-destructive">Could not load prompts. Please try again.</p>
+                <button
+                  type="button"
+                  onClick={() => refetchPrompts()}
+                  className="px-4 py-2 rounded-lg border border-border text-sm text-foreground hover:bg-secondary transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
             ) : (
               <div className="space-y-6">
                 {prompts?.map((prompt, i) => (
@@ -230,7 +241,7 @@ export default function NewEntryPage() {
             )}
             <button
               type="submit"
-              disabled={promptsLoading}
+              disabled={promptsLoading || promptsError}
               className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
             >
               Review entry
