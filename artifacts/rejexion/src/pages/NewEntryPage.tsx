@@ -1,12 +1,34 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useGetPrompts, useCreateEntry, getListEntriesQueryKey, getGetStatsQueryKey, getGetPointsQueryKey, getGetProfileQueryKey } from "@workspace/api-client-react";
+import { useCreateEntry, getListEntriesQueryKey, getGetStatsQueryKey, getGetPointsQueryKey, getGetProfileQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/Layout";
 import { format } from "date-fns";
 
 type Category = "academic" | "career";
 type Step = 1 | 2 | 3 | 4;
+
+interface Prompt {
+  id: string;
+  category: Category;
+  promptText: string;
+  orderIndex: number;
+}
+
+const PROMPTS: Record<Category, Prompt[]> = {
+  academic: [
+    { id: "9dd3827e-cc09-4c7a-be4c-5a5e024a19a0", category: "academic", orderIndex: 1, promptText: "What did you learn about yourself, your coursework, your research, or your academic strengths through this application process?" },
+    { id: "6d0a1217-c0d9-4d35-83ea-4e70d8428ac9", category: "academic", orderIndex: 2, promptText: "What were you hoping to gain from this program, fellowship, or institution, and what does this rejection mean for your academic goals right now?" },
+    { id: "22a9a239-c169-4299-8d06-c33149871d68", category: "academic", orderIndex: 3, promptText: "What external factors — such as the school's program priorities, competition, or timing — may have influenced this admissions or scholarship decision?" },
+    { id: "9eed3daf-5a2a-4a4a-b0db-9f0b5416857a", category: "academic", orderIndex: 4, promptText: "What is one concrete step you could take — whether retaking a course, seeking a professor's mentorship, or applying elsewhere — to continue pursuing your academic goals?" },
+  ],
+  career: [
+    { id: "2a20c73a-72b1-478d-9a60-a4b1ed7862f9", category: "career", orderIndex: 1, promptText: "What were you hoping for from this opportunity, and what does this rejection feel like right now?" },
+    { id: "3fa20c16-67a9-414d-8865-f15a3940e5e5", category: "career", orderIndex: 2, promptText: "What did you learn about yourself, your skills, or the role through this process?" },
+    { id: "a2878ecc-2027-4092-bb88-0d9593cf69e2", category: "career", orderIndex: 3, promptText: "What factors outside your control may have played a role in this decision?" },
+    { id: "73f4f9c4-c112-4906-8aa3-b62f4bdda48e", category: "career", orderIndex: 4, promptText: "What is one thing you want to focus on or try differently going forward?" },
+  ],
+};
 
 export default function NewEntryPage() {
   const [, navigate] = useLocation();
@@ -21,24 +43,7 @@ export default function NewEntryPage() {
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
 
-  const {
-    data: academicPrompts,
-    isLoading: academicLoading,
-    isError: academicError,
-    refetch: refetchAcademic,
-  } = useGetPrompts({ category: "academic" });
-
-  const {
-    data: careerPrompts,
-    isLoading: careerLoading,
-    isError: careerError,
-    refetch: refetchCareer,
-  } = useGetPrompts({ category: "career" });
-
-  const prompts = category === "academic" ? academicPrompts : category === "career" ? careerPrompts : undefined;
-  const promptsLoading = category === "academic" ? academicLoading : category === "career" ? careerLoading : false;
-  const promptsError = category === "academic" ? academicError : category === "career" ? careerError : false;
-  const refetchPrompts = category === "academic" ? refetchAcademic : refetchCareer;
+  const prompts = category ? PROMPTS[category] : undefined;
 
   const handleSelectCategory = (cat: Category) => {
     setCategory(cat);
@@ -218,45 +223,26 @@ export default function NewEntryPage() {
             {error && (
               <div className="px-4 py-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">{error}</div>
             )}
-            {promptsLoading ? (
-              <div className="flex flex-col items-center justify-center py-12 gap-3">
-                <div className="w-7 h-7 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-                <p className="text-sm text-muted-foreground">Loading reflection prompts…</p>
-              </div>
-            ) : promptsError ? (
-              <div className="flex flex-col items-center justify-center py-12 gap-3">
-                <p className="text-sm text-destructive">Could not load prompts. Please try again.</p>
-                <button
-                  type="button"
-                  onClick={() => refetchPrompts()}
-                  className="px-4 py-2 rounded-lg border border-border text-sm text-foreground hover:bg-secondary transition-colors"
-                >
-                  Retry
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {prompts?.map((prompt, i) => (
-                  <div key={prompt.id} className="space-y-2">
-                    <label className="block text-sm font-medium text-foreground">
-                      <span className="text-muted-foreground mr-2">{i + 1}.</span>
-                      {prompt.promptText}
-                    </label>
-                    <textarea
-                      value={responses[prompt.id] ?? ""}
-                      onChange={(e) => setResponses((prev) => ({ ...prev, [prompt.id]: e.target.value }))}
-                      rows={3}
-                      className="w-full px-3 py-2.5 rounded-lg border border-input bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow resize-none"
-                      placeholder="Write your thoughts here..."
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="space-y-6">
+              {prompts?.map((prompt, i) => (
+                <div key={prompt.id} className="space-y-2">
+                  <label className="block text-sm font-medium text-foreground">
+                    <span className="text-muted-foreground mr-2">{i + 1}.</span>
+                    {prompt.promptText}
+                  </label>
+                  <textarea
+                    value={responses[prompt.id] ?? ""}
+                    onChange={(e) => setResponses((prev) => ({ ...prev, [prompt.id]: e.target.value }))}
+                    rows={3}
+                    className="w-full px-3 py-2.5 rounded-lg border border-input bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow resize-none"
+                    placeholder="Write your thoughts here..."
+                  />
+                </div>
+              ))}
+            </div>
             <button
               type="submit"
-              disabled={promptsLoading || promptsError}
-              className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
             >
               Review entry
             </button>

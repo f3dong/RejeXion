@@ -54,8 +54,8 @@ router.post("/entries", requireAuth, async (req, res): Promise<void> => {
   const userId = req.session.userId!;
   const { category, title, rejectionDate, description, responses } = req.body;
 
-  if (!category || !title || !rejectionDate || !description || !responses) {
-    res.status(400).json({ error: "All fields are required" });
+  if (!category || !title || !rejectionDate || !responses) {
+    res.status(400).json({ error: "Category, title, date, and responses are required" });
     return;
   }
 
