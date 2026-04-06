@@ -21,10 +21,24 @@ export default function NewEntryPage() {
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
 
-  const { data: prompts, isLoading: promptsLoading, isError: promptsError, refetch: refetchPrompts } = useGetPrompts(
-    { category: category! },
-    { query: { enabled: !!category } }
-  );
+  const {
+    data: academicPrompts,
+    isLoading: academicLoading,
+    isError: academicError,
+    refetch: refetchAcademic,
+  } = useGetPrompts({ category: "academic" });
+
+  const {
+    data: careerPrompts,
+    isLoading: careerLoading,
+    isError: careerError,
+    refetch: refetchCareer,
+  } = useGetPrompts({ category: "career" });
+
+  const prompts = category === "academic" ? academicPrompts : category === "career" ? careerPrompts : undefined;
+  const promptsLoading = category === "academic" ? academicLoading : category === "career" ? careerLoading : false;
+  const promptsError = category === "academic" ? academicError : category === "career" ? careerError : false;
+  const refetchPrompts = category === "academic" ? refetchAcademic : refetchCareer;
 
   const handleSelectCategory = (cat: Category) => {
     setCategory(cat);
