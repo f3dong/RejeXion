@@ -21,7 +21,7 @@ export default function NewEntryPage() {
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
 
-  const { data: prompts } = useGetPrompts(
+  const { data: prompts, isLoading: promptsLoading } = useGetPrompts(
     { category: category! },
     { query: { enabled: !!category } }
   );
@@ -204,26 +204,34 @@ export default function NewEntryPage() {
             {error && (
               <div className="px-4 py-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">{error}</div>
             )}
-            <div className="space-y-6">
-              {prompts?.map((prompt, i) => (
-                <div key={prompt.id} className="space-y-2">
-                  <label className="block text-sm font-medium text-foreground">
-                    <span className="text-muted-foreground mr-2">{i + 1}.</span>
-                    {prompt.promptText}
-                  </label>
-                  <textarea
-                    value={responses[prompt.id] ?? ""}
-                    onChange={(e) => setResponses((prev) => ({ ...prev, [prompt.id]: e.target.value }))}
-                    rows={3}
-                    className="w-full px-3 py-2.5 rounded-lg border border-input bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow resize-none"
-                    placeholder="Write your thoughts here..."
-                  />
-                </div>
-              ))}
-            </div>
+            {promptsLoading ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <div className="w-7 h-7 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                <p className="text-sm text-muted-foreground">Loading reflection prompts…</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {prompts?.map((prompt, i) => (
+                  <div key={prompt.id} className="space-y-2">
+                    <label className="block text-sm font-medium text-foreground">
+                      <span className="text-muted-foreground mr-2">{i + 1}.</span>
+                      {prompt.promptText}
+                    </label>
+                    <textarea
+                      value={responses[prompt.id] ?? ""}
+                      onChange={(e) => setResponses((prev) => ({ ...prev, [prompt.id]: e.target.value }))}
+                      rows={3}
+                      className="w-full px-3 py-2.5 rounded-lg border border-input bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow resize-none"
+                      placeholder="Write your thoughts here..."
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
             <button
               type="submit"
-              className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
+              disabled={promptsLoading}
+              className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
             >
               Review entry
             </button>
