@@ -25,8 +25,8 @@ export default function RegisterPage() {
     register.mutate(
       { data: { name, email, password } },
       {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+        onSuccess: async () => {
+          await queryClient.refetchQueries({ queryKey: getGetMeQueryKey() });
           navigate("/timeline");
         },
         onError: (err: any) => {

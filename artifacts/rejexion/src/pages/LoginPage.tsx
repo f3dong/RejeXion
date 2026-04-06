@@ -19,8 +19,8 @@ export default function LoginPage() {
     login.mutate(
       { data: { email, password } },
       {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+        onSuccess: async () => {
+          await queryClient.refetchQueries({ queryKey: getGetMeQueryKey() });
           navigate("/timeline");
         },
         onError: (err: any) => {
