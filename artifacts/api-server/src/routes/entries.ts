@@ -244,7 +244,27 @@ router.delete("/entries/:id", requireAuth, async (req, res, next): Promise<void>
       return;
     }
 
-    await db.delete(entriesTable).where(eq(entriesTable.id, entry.id));
+    await db.transaction(async (tx) => {
+      const growthNotes = await tx
+        .select({ id: growthNotesTable.id })
+        .from(growthNotesTable)
+        .where(eq(growthNotesTable.entryId, entry.id));
+
+      if (growthNotes.length > 0) {
+        const growthNoteIds = growthNotes.map((gn) => gn.id);
+        for (const gnId of growthNoteIds) {
+          await tx
+            .delete(pointsEventsTable)
+            .where(and(eq(pointsEventsTable.referenceId, gnId), eq(pointsEventsTable.eventType, "growth_note_added")));
+        }
+      }
+
+      await tx
+        .delete(pointsEventsTable)
+        .where(and(eq(pointsEventsTable.referenceId, entry.id), eq(pointsEventsTable.eventType, "entry_created")));
+
+      await tx.delete(entriesTable).where(eq(entriesTable.id, entry.id));
+    });
 
     req.log.info({ entryId: entry.id, userId }, "Entry deleted");
     res.sendStatus(204);

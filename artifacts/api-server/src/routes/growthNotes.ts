@@ -112,7 +112,13 @@ router.delete("/growth-notes/:id", requireAuth, async (req, res, next): Promise<
       return;
     }
 
-    await db.delete(growthNotesTable).where(eq(growthNotesTable.id, note.id));
+    await db.transaction(async (tx) => {
+      await tx
+        .delete(pointsEventsTable)
+        .where(and(eq(pointsEventsTable.referenceId, note.id), eq(pointsEventsTable.eventType, "growth_note_added")));
+
+      await tx.delete(growthNotesTable).where(eq(growthNotesTable.id, note.id));
+    });
 
     req.log.info({ growthNoteId: note.id, userId }, "Growth note deleted");
     res.sendStatus(204);
