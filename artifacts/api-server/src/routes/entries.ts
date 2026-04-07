@@ -74,26 +74,30 @@ router.post("/entries", requireAuth, async (req, res, next): Promise<void> => {
       return;
     }
 
-    const [entry] = await db
-      .insert(entriesTable)
-      .values({ userId, category, title, rejectionDate, description })
-      .returning();
+    const entry = await db.transaction(async (tx) => {
+      const [newEntry] = await tx
+        .insert(entriesTable)
+        .values({ userId, category, title, rejectionDate, description })
+        .returning();
 
-    for (const r of responses) {
-      if (r.promptId && r.responseText != null) {
-        await db.insert(entryResponsesTable).values({
-          entryId: entry.id,
-          promptId: r.promptId,
-          responseText: r.responseText,
-        });
+      for (const r of responses) {
+        if (r.promptId && r.responseText != null) {
+          await tx.insert(entryResponsesTable).values({
+            entryId: newEntry.id,
+            promptId: r.promptId,
+            responseText: r.responseText,
+          });
+        }
       }
-    }
 
-    await db.insert(pointsEventsTable).values({
-      userId,
-      eventType: "entry_created",
-      referenceId: entry.id,
-      points: 5,
+      await tx.insert(pointsEventsTable).values({
+        userId,
+        eventType: "entry_created",
+        referenceId: newEntry.id,
+        points: 5,
+      });
+
+      return newEntry;
     });
 
     req.log.info({ entryId: entry.id, userId }, "Entry created");

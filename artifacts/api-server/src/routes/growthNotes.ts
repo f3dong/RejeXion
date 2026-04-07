@@ -62,16 +62,20 @@ router.post("/entries/:entryId/growth-notes", requireAuth, async (req, res, next
       return;
     }
 
-    const [growthNote] = await db
-      .insert(growthNotesTable)
-      .values({ entryId: entry.id, content })
-      .returning();
+    const growthNote = await db.transaction(async (tx) => {
+      const [newNote] = await tx
+        .insert(growthNotesTable)
+        .values({ entryId: entry.id, content })
+        .returning();
 
-    await db.insert(pointsEventsTable).values({
-      userId,
-      eventType: "growth_note_added",
-      referenceId: growthNote.id,
-      points: 2,
+      await tx.insert(pointsEventsTable).values({
+        userId,
+        eventType: "growth_note_added",
+        referenceId: newNote.id,
+        points: 2,
+      });
+
+      return newNote;
     });
 
     req.log.info({ growthNoteId: growthNote.id, entryId: entry.id, userId }, "Growth note added");

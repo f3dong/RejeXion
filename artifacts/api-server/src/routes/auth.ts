@@ -97,6 +97,30 @@ router.post("/auth/login", async (req, res, next): Promise<void> => {
   }
 });
 
+router.get("/auth/dev-login", async (req, res, next): Promise<void> => {
+  if (process.env.NODE_ENV === "production") {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  try {
+    let [user] = await db.select().from(usersTable).limit(1);
+    if (!user) {
+      const bcrypt = await import("bcrypt");
+      const passwordHash = await bcrypt.hash("devpassword123", 12);
+      [user] = await db
+        .insert(usersTable)
+        .values({ email: "dev@rejexion.dev", name: "Dev User", passwordHash })
+        .returning();
+    }
+    req.session.userId = user.id;
+    req.session.save(() => {
+      res.json({ message: `Signed in as ${user.name} (${user.email})`, userId: user.id });
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post("/auth/logout", async (req, res, next): Promise<void> => {
   try {
     req.session.destroy((err) => {

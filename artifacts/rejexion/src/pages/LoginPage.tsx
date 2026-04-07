@@ -3,6 +3,8 @@ import { Link, useLocation } from "wouter";
 import { useLogin, getGetMeQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
+const isDev = import.meta.env.DEV;
+
 export default function LoginPage() {
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
@@ -11,6 +13,20 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [devLoading, setDevLoading] = useState(false);
+
+  const handleDevLogin = async () => {
+    setDevLoading(true);
+    try {
+      const res = await fetch(`${import.meta.env.BASE_URL}api/auth/dev-login`, { credentials: "include" });
+      if (res.ok) {
+        await queryClient.refetchQueries({ queryKey: getGetMeQueryKey() });
+        navigate("/timeline");
+      }
+    } finally {
+      setDevLoading(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,6 +112,20 @@ export default function LoginPage() {
               {login.isPending ? "Signing in..." : "Sign in"}
             </button>
           </form>
+
+          {isDev && (
+            <div className="pt-2 border-t border-border">
+              <button
+                type="button"
+                onClick={handleDevLogin}
+                disabled={devLoading}
+                className="w-full py-2.5 rounded-lg border border-border bg-secondary text-secondary-foreground text-sm font-medium hover:bg-secondary/80 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {devLoading ? "Signing in..." : "Dev login (skip auth)"}
+              </button>
+              <p className="text-xs text-center text-muted-foreground mt-2">Development only — not visible in production</p>
+            </div>
+          )}
 
           <p className="text-sm text-center text-muted-foreground">
             No account?{" "}
