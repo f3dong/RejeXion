@@ -18,11 +18,8 @@ export default function LoginPage() {
   const handleDevLogin = async () => {
     setDevLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.BASE_URL}api/auth/dev-login`, { credentials: "include" });
-      if (res.ok) {
-        await queryClient.refetchQueries({ queryKey: getGetMeQueryKey() });
-        navigate("/timeline");
-      }
+      await queryClient.refetchQueries({ queryKey: getGetMeQueryKey() });
+      navigate("/timeline");
     } finally {
       setDevLoading(false);
     }

@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { eq } from "drizzle-orm";
 import { db, usersTable, passwordResetsTable } from "@workspace/db";
 import { logger } from "../lib/logger";
+import { getOrCreateDevUser } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
@@ -136,7 +137,14 @@ router.post("/auth/logout", async (req, res, next): Promise<void> => {
 
 router.get("/auth/me", async (req, res, next): Promise<void> => {
   try {
-    if (!req.session.userId) {
+    let userId = req.session.userId;
+
+    if (!userId && process.env.NODE_ENV !== "production") {
+      userId = (await getOrCreateDevUser()) ?? undefined;
+      if (userId) req.session.userId = userId;
+    }
+
+    if (!userId) {
       res.status(401).json({ error: "Not authenticated" });
       return;
     }
@@ -144,7 +152,7 @@ router.get("/auth/me", async (req, res, next): Promise<void> => {
     const [user] = await db
       .select()
       .from(usersTable)
-      .where(eq(usersTable.id, req.session.userId))
+      .where(eq(usersTable.id, userId))
       .limit(1);
 
     if (!user) {
